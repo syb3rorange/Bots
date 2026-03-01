@@ -7,8 +7,7 @@ export const BoppoButton: React.FC<BoppoButtonProps> = ({
   activeColor, 
   defaultColor,
   icon: Icon, 
-  onPress,
-  theme
+  onPress
 }) => {
   const isColored = activeColor !== null;
   const displayColor = activeColor || '#FFFFFF';

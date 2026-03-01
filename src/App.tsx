@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Trophy, Zap, RefreshCw, Layers, Music, AlertTriangle, ShieldCheck } from 'lucide-react';
-import { THEMES, GAME_COLORS } from './constants';
-import { ThemeType, GameState } from './types';
+import { Trophy, Zap, RefreshCw, Music, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { BOPPO_CONFIG, GAME_COLORS } from './constants';
+import { GameState } from './types';
 import { BoppoButton } from './components/BoppoButton';
 
 // Sound Manager
@@ -43,7 +43,6 @@ const triggerHaptic = (type: 'light' | 'heavy' = 'light') => {
 };
 
 export default function App() {
-  const [theme, setTheme] = useState<ThemeType>('classic');
   const [gameState, setGameState] = useState<GameState>({
     score: 0,
     streak: 0,
@@ -55,7 +54,6 @@ export default function App() {
   });
 
   const spawnTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const currentTheme = THEMES[theme];
 
   const startGame = () => {
     playSound('start');
@@ -159,16 +157,8 @@ export default function App() {
     }
   };
 
-  const cycleTheme = () => {
-    const themeKeys = Object.keys(THEMES) as ThemeType[];
-    const currentIndex = themeKeys.indexOf(theme);
-    const nextIndex = (currentIndex + 1) % themeKeys.length;
-    setTheme(themeKeys[nextIndex]);
-    triggerHaptic('light');
-  };
-
   return (
-    <div className={`min-h-screen ${currentTheme.bgClass} text-white font-sans selection:bg-white/20 flex flex-col items-center justify-center p-2 transition-colors duration-700 safe-area-inset`}>
+    <div className={`min-h-screen ${BOPPO_CONFIG.bgClass} text-white font-sans selection:bg-white/20 flex flex-col items-center justify-center p-2 transition-colors duration-700 safe-area-inset`}>
       
       {/* Device Frame */}
       <div className="w-full max-w-lg bg-zinc-800/90 p-4 sm:p-6 rounded-[2rem] border-4 border-zinc-700/50 shadow-2xl relative overflow-hidden">
@@ -222,30 +212,22 @@ export default function App() {
               key={i}
               index={i}
               activeColor={gameState.buttonColors[i]}
-              defaultColor={currentTheme.colors[i]}
-              icon={currentTheme.icons[i]}
+              defaultColor={BOPPO_CONFIG.colors[i]}
+              icon={BOPPO_CONFIG.icons[i]}
               onPress={handleButtonPress}
-              theme={theme}
             />
           ))}
         </div>
 
         {/* Controls */}
-        <div className="flex justify-between items-center">
-          <button
-            onClick={cycleTheme}
-            className="p-2 bg-white/5 rounded-xl border border-white/10"
-          >
-            <Layers size={16} className="opacity-60" />
-          </button>
-
+        <div className="flex justify-center items-center">
           <AnimatePresence mode="wait">
             {gameState.status !== 'playing' ? (
               <motion.button
                 key="start"
                 whileTap={{ scale: 0.95 }}
                 onClick={startGame}
-                className="bg-emerald-500 text-black px-6 py-2 rounded-xl font-black uppercase tracking-tighter text-sm shadow-lg"
+                className="bg-emerald-500 text-black px-12 py-2 rounded-xl font-black uppercase tracking-tighter text-sm shadow-lg"
               >
                 {gameState.status === 'idle' ? 'Start' : 'Retry'}
               </motion.button>
