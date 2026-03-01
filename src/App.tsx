@@ -168,27 +168,27 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen ${currentTheme.bgClass} text-white font-sans selection:bg-white/20 flex flex-col items-center justify-center p-4 transition-colors duration-700 safe-area-inset`}>
+    <div className={`min-h-screen ${currentTheme.bgClass} text-white font-sans selection:bg-white/20 flex flex-col items-center justify-center p-2 transition-colors duration-700 safe-area-inset`}>
       
       {/* Device Frame */}
-      <div className="w-full max-w-md bg-zinc-800/80 p-6 rounded-[2.5rem] border-4 border-zinc-700/50 shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-lg bg-zinc-800/90 p-4 sm:p-6 rounded-[2rem] border-4 border-zinc-700/50 shadow-2xl relative overflow-hidden">
         
         {/* Hardware Details */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-zinc-900 rounded-full opacity-30" />
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-zinc-900 rounded-full opacity-30" />
 
         {/* HUD */}
-        <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col gap-2 mb-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-black italic tracking-tighter opacity-90">BOPPO</h1>
-            <div className="flex gap-3 items-center">
+            <h1 className="text-xl font-black italic tracking-tighter opacity-90">BOPPO</h1>
+            <div className="flex gap-2 items-center">
               <div className="text-right">
-                <div className="text-[8px] uppercase font-bold opacity-40">Best</div>
-                <div className="text-lg font-mono leading-none">{gameState.highScore.toString().padStart(3, '0')}</div>
+                <div className="text-[7px] uppercase font-bold opacity-40">Best</div>
+                <div className="text-sm font-mono leading-none">{gameState.highScore.toString().padStart(3, '0')}</div>
               </div>
-              <div className="h-6 w-px bg-white/10" />
+              <div className="h-4 w-px bg-white/10" />
               <div className="text-right">
-                <div className="text-[8px] uppercase font-bold opacity-40">Score</div>
-                <div className="text-3xl font-mono leading-none text-emerald-400">{gameState.score.toString().padStart(3, '0')}</div>
+                <div className="text-[7px] uppercase font-bold opacity-40">Score</div>
+                <div className="text-xl font-mono leading-none text-emerald-400">{gameState.score.toString().padStart(3, '0')}</div>
               </div>
             </div>
           </div>
@@ -197,17 +197,17 @@ export default function App() {
           <AnimatePresence mode="wait">
             {gameState.status === 'playing' && (
               <motion.div 
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="bg-black/40 rounded-2xl p-3 flex items-center justify-between border border-white/5"
+                exit={{ opacity: 0, y: 5 }}
+                className="bg-black/40 rounded-xl p-2 flex items-center justify-between border border-white/5"
               >
                 <div className="flex items-center gap-2">
-                  <AlertTriangle size={16} className="text-red-500 animate-pulse" />
-                  <span className="text-[10px] uppercase font-black tracking-widest text-red-500">Avoid Color:</span>
+                  <AlertTriangle size={12} className="text-red-500 animate-pulse" />
+                  <span className="text-[8px] uppercase font-black tracking-widest text-red-500">Avoid:</span>
                 </div>
                 <div 
-                  className="w-12 h-6 rounded-full border-2 border-white/20 shadow-inner"
+                  className="w-8 h-4 rounded-full border border-white/20 shadow-inner"
                   style={{ backgroundColor: gameState.dangerColor || 'transparent' }}
                 />
               </motion.div>
@@ -215,8 +215,8 @@ export default function App() {
           </AnimatePresence>
         </div>
 
-        {/* The Grid - Optimized for Mobile (2x5) */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* The Grid - Optimized for Mobile (5x2 as requested) */}
+        <div className="grid grid-cols-5 gap-2 mb-4">
           {Array.from({ length: 10 }).map((_, i) => (
             <BoppoButton
               key={i}
@@ -234,9 +234,9 @@ export default function App() {
         <div className="flex justify-between items-center">
           <button
             onClick={cycleTheme}
-            className="p-3 bg-white/5 rounded-2xl border border-white/10"
+            className="p-2 bg-white/5 rounded-xl border border-white/10"
           >
-            <Layers size={20} className="opacity-60" />
+            <Layers size={16} className="opacity-60" />
           </button>
 
           <AnimatePresence mode="wait">
@@ -245,14 +245,14 @@ export default function App() {
                 key="start"
                 whileTap={{ scale: 0.95 }}
                 onClick={startGame}
-                className="bg-emerald-500 text-black px-10 py-3 rounded-2xl font-black uppercase tracking-tighter shadow-lg"
+                className="bg-emerald-500 text-black px-6 py-2 rounded-xl font-black uppercase tracking-tighter text-sm shadow-lg"
               >
                 {gameState.status === 'idle' ? 'Start' : 'Retry'}
               </motion.button>
             ) : (
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={16} className="text-emerald-500" />
-                <span className="text-[10px] font-mono opacity-50 uppercase tracking-widest">Level {gameState.difficulty}</span>
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck size={12} className="text-emerald-500" />
+                <span className="text-[8px] font-mono opacity-50 uppercase tracking-widest">Lvl {gameState.difficulty}</span>
               </div>
             )}
           </AnimatePresence>
@@ -292,11 +292,11 @@ export default function App() {
       </div>
 
       {/* Mobile Instructions */}
-      <div className="mt-8 px-6 text-center opacity-40">
-        <p className="text-[10px] uppercase font-black tracking-[0.2em] mb-2">How to Play</p>
-        <p className="text-xs font-medium leading-relaxed">
-          Avoid the <span className="text-red-400">Danger Color</span> shown in the HUD. 
-          Tap any other color to score points. Speed increases as you level up!
+      <div className="mt-4 px-4 text-center opacity-40">
+        <p className="text-[8px] uppercase font-black tracking-[0.2em] mb-1">How to Play</p>
+        <p className="text-[10px] font-medium leading-tight">
+          Avoid the <span className="text-red-400">Danger Color</span>. 
+          Tap any other color to score. Speed increases as you level up!
         </p>
       </div>
     </div>

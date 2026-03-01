@@ -52,7 +52,7 @@ export const BoppoButton: React.FC<BoppoButtonProps> = ({
       </AnimatePresence>
 
       <Icon 
-        size={32} 
+        size={24} 
         strokeWidth={2.5}
         className={`
           z-10 transition-all duration-300
