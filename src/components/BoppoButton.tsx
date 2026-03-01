@@ -5,8 +5,6 @@ import { BoppoButtonProps } from '../types';
 export const BoppoButton: React.FC<BoppoButtonProps> = ({ 
   index, 
   activeColor, 
-  defaultColor,
-  icon: Icon, 
   onPress
 }) => {
   const isColored = activeColor !== null;
@@ -15,52 +13,48 @@ export const BoppoButton: React.FC<BoppoButtonProps> = ({
   return (
     <motion.button
       id={`boppo-btn-${index}`}
-      whileTap={{ scale: 0.92, y: 2 }}
+      whileTap={{ scale: 0.94, y: 1 }}
       onClick={() => onPress(index)}
       className={`
-        relative w-full aspect-square rounded-3xl flex items-center justify-center
+        relative w-full aspect-square rounded-2xl flex items-center justify-center
         transition-all duration-300 overflow-hidden
-        ${isColored ? 'brightness-110' : 'brightness-90 opacity-90'}
+        ${isColored ? 'brightness-110' : 'brightness-90 opacity-80'}
       `}
       style={{ 
-        backgroundColor: displayColor,
+        backgroundColor: isColored ? displayColor : 'rgba(255,255,255,0.05)',
         boxShadow: isColored 
-          ? `0 0 30px ${displayColor}AA, inset 0 0 15px rgba(255,255,255,0.5)` 
-          : `0 0 15px rgba(255,255,255,0.3), inset 0 2px 4px rgba(0,0,0,0.1)`,
-        border: isColored ? `4px solid white` : `4px solid rgba(255,255,255,0.2)`
+          ? `0 0 25px ${displayColor}66, inset 0 0 10px rgba(255,255,255,0.3)` 
+          : `inset 0 1px 2px rgba(255,255,255,0.05)`,
+        border: isColored ? `2px solid rgba(255,255,255,0.4)` : `1px solid rgba(255,255,255,0.1)`
       }}
     >
-      {/* Inner Glow Effect for White State */}
+      {/* Subtle Inner Glow for White State */}
       {!isColored && (
-        <div className="absolute inset-0 bg-white/10 blur-md rounded-full" />
+        <div className="absolute inset-0 bg-white/[0.02] rounded-full" />
       )}
 
-      {/* Pulsing Effect for Colored State */}
+      {/* Professional Pulsing Effect for Colored State */}
       <AnimatePresence>
         {isColored && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0 }}
             animate={{ 
-              opacity: [0.2, 0.4, 0.2],
-              scale: [1, 1.1, 1]
+              opacity: [0.1, 0.3, 0.1],
             }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-            className="absolute inset-0 bg-white/20 blur-xl rounded-full"
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="absolute inset-0 bg-white/10 blur-lg rounded-full"
           />
         )}
       </AnimatePresence>
 
-      <Icon 
-        size={24} 
-        strokeWidth={2.5}
-        className={`
-          z-10 transition-all duration-300
-          ${isColored ? 'text-white drop-shadow-[0_0_4px_rgba(255,255,255,0.5)] scale-110' : 'text-black/20'}
-        `} 
-      />
-
-      {/* Tactile Rim */}
-      <div className="absolute inset-0 border-[6px] border-black/5 rounded-3xl pointer-events-none" />
+      {/* Minimal Center Dot for Active State */}
+      {isColored && (
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="w-2 h-2 bg-white rounded-full shadow-[0_0_10px_white]"
+        />
+      )}
     </motion.button>
   );
 };
