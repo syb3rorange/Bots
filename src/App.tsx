@@ -219,23 +219,20 @@ export default function App() {
           ))}
         </div>
 
-        {/* Controls */}
-        <div className="flex justify-center items-center">
+        {/* Controls (Level Indicator only when playing) */}
+        <div className="flex justify-center items-center h-8">
           <AnimatePresence mode="wait">
-            {gameState.status !== 'playing' ? (
-              <motion.button
-                key="start"
-                whileTap={{ scale: 0.95 }}
-                onClick={startGame}
-                className="bg-emerald-500 text-black px-12 py-2 rounded-xl font-black uppercase tracking-tighter text-sm shadow-lg"
+            {gameState.status === 'playing' && (
+              <motion.div
+                key="level-indicator"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-1.5"
               >
-                {gameState.status === 'idle' ? 'Start' : 'Retry'}
-              </motion.button>
-            ) : (
-              <div className="flex items-center gap-1.5">
                 <ShieldCheck size={12} className="text-emerald-500" />
                 <span className="text-[8px] font-mono opacity-50 uppercase tracking-widest">Lvl {gameState.difficulty}</span>
-              </div>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
@@ -256,19 +253,33 @@ export default function App() {
                 <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-1">Danger Hit!</h2>
                 <p className="text-sm font-mono opacity-50 mb-8 uppercase tracking-widest">You touched the forbidden color</p>
                 
-                <div className="bg-white/5 rounded-3xl p-6 mb-8 border border-white/10">
+                <div className="bg-white/5 rounded-3xl p-6 border border-white/10">
                   <div className="text-[10px] uppercase font-bold opacity-40 mb-1">Final Score</div>
                   <div className="text-5xl font-mono text-emerald-400">{gameState.score}</div>
                 </div>
-
-                <button
-                  onClick={startGame}
-                  className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-tighter text-lg"
-                >
-                  Try Again
-                </button>
               </motion.div>
             </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* External Controls (Start / Retry) */}
+      <div className="mt-6 w-full max-w-lg px-4">
+        <AnimatePresence mode="wait">
+          {(gameState.status === 'idle' || gameState.status === 'gameOver') && (
+            <motion.button
+              key="external-start-btn"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={startGame}
+              className="w-full bg-emerald-500 text-black py-4 rounded-2xl font-black uppercase tracking-tighter text-lg shadow-[0_10px_30px_rgba(16,185,129,0.3)] flex items-center justify-center gap-3"
+            >
+              <RefreshCw size={24} className={gameState.status === 'gameOver' ? 'animate-spin-slow' : ''} />
+              {gameState.status === 'idle' ? 'Start Game' : 'Try Again'}
+            </motion.button>
           )}
         </AnimatePresence>
       </div>
