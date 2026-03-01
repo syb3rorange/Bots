@@ -5,7 +5,16 @@ import { BOPPO_CONFIG, GAME_COLORS } from './constants';
 import { GameState } from './types';
 import { BoppoButton } from './components/BoppoButton';
 
-// Sound Manager
+// Sound Manager (Singleton AudioContext to prevent "too many contexts" error)
+let sharedAudioCtx: AudioContext | null = null;
+
+const getAudioCtx = () => {
+  if (!sharedAudioCtx) {
+    sharedAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  return sharedAudioCtx;
+};
+
 const playSound = (type: 'tap' | 'success' | 'fail' | 'start' | 'warn') => {
   const frequencies = {
     tap: 440,
@@ -16,7 +25,13 @@ const playSound = (type: 'tap' | 'success' | 'fail' | 'start' | 'warn') => {
   };
   
   try {
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioCtx = getAudioCtx();
+    
+    // Resume context if suspended (browser requirement for user interaction)
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
@@ -32,7 +47,7 @@ const playSound = (type: 'tap' | 'success' | 'fail' | 'start' | 'warn') => {
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + 0.15);
   } catch (e) {
-    console.warn("Audio context not supported", e);
+    console.warn("Audio context error", e);
   }
 };
 
@@ -56,6 +71,10 @@ export default function App() {
   const spawnTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const startGame = () => {
+    // Ensure audio context is active on first user interaction
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+
     playSound('start');
     const randomDanger = GAME_COLORS[Math.floor(Math.random() * GAME_COLORS.length)];
     setGameState({
