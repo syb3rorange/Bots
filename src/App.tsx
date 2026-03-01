@@ -79,11 +79,37 @@ export default function App() {
     status: 'calibrating',
     difficulty: 1,
     calibration: {
-      width: Math.min(window.innerWidth - 40, 400),
-      height: Math.min(window.innerHeight - 150, 600),
+      width: 320,
+      height: 480,
       padding: 16
     }
   });
+
+  // Auto-detect viewport on mount
+  useEffect(() => {
+    const detectSize = () => {
+      // Use visualViewport for better mobile browser chrome handling
+      const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      
+      // Calculate a comfortable fit (leaving some margin for browser UI)
+      const detectedWidth = Math.min(vw - 24, 450);
+      const detectedHeight = Math.min(vh - 180, 700);
+
+      setGameState(prev => ({
+        ...prev,
+        calibration: {
+          ...prev.calibration,
+          width: detectedWidth,
+          height: detectedHeight
+        }
+      }));
+    };
+
+    detectSize();
+    window.addEventListener('resize', detectSize);
+    return () => window.removeEventListener('resize', detectSize);
+  }, []);
 
   const spawnTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -288,13 +314,29 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex gap-4 mt-12">
+        <div className="flex flex-wrap justify-center gap-3 mt-8">
+          <button
+            onClick={() => {
+              const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+              const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+              updateCalibration({ 
+                width: Math.min(vw - 24, 450), 
+                height: Math.min(vh - 180, 700) 
+              });
+              triggerHaptic('light');
+            }}
+            className="bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 px-6 py-3 rounded-2xl font-bold uppercase tracking-widest text-[10px] border border-blue-500/30 flex items-center gap-2"
+          >
+            <Maximize2 size={14} />
+            Auto-Fit
+          </button>
+
           <button
             onClick={() => updateCalibration({ 
-              width: Math.min(window.innerWidth - 40, 400), 
-              height: Math.min(window.innerHeight - 200, 600) 
+              width: 320, 
+              height: 480 
             })}
-            className="bg-white/5 hover:bg-white/10 text-white/60 px-6 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs border border-white/10"
+            className="bg-white/5 hover:bg-white/10 text-white/60 px-6 py-3 rounded-2xl font-bold uppercase tracking-widest text-[10px] border border-white/10"
           >
             Reset
           </button>
@@ -302,10 +344,10 @@ export default function App() {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={finishCalibration}
-            className="bg-emerald-500 text-black px-12 py-4 rounded-2xl font-black uppercase tracking-tighter text-lg shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center gap-3"
+            className="w-full sm:w-auto bg-emerald-500 text-black px-10 py-4 rounded-2xl font-black uppercase tracking-tighter text-lg shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center justify-center gap-3"
           >
             <CheckCircle2 size={24} />
-            Proceed
+            Looks Good
           </motion.button>
         </div>
       </div>
