@@ -78,12 +78,24 @@ export default function App() {
     difficulty: 1
   });
 
+  const buttonTimeoutsRef = useRef<(NodeJS.Timeout | null)[]>(Array(10).fill(null));
   const spawnTimerRef = useRef<NodeJS.Timeout | null>(null);
   const soundManager = useRef(SoundManager.getInstance());
+
+  const clearButtonTimeout = (index: number) => {
+    if (buttonTimeoutsRef.current[index]) {
+      clearTimeout(buttonTimeoutsRef.current[index]!);
+      buttonTimeoutsRef.current[index] = null;
+    }
+  };
 
   const startGame = () => {
     soundManager.current.play('start');
     const randomDanger = GAME_COLORS[Math.floor(Math.random() * GAME_COLORS.length)];
+    
+    // Clear all existing timeouts
+    buttonTimeoutsRef.current.forEach((_, i) => clearButtonTimeout(i));
+
     setGameState({
       score: 0,
       streak: 0,
@@ -96,9 +108,9 @@ export default function App() {
   };
 
   const spawnColor = useCallback(() => {
-    if (gameState.status !== 'playing') return;
-
     setGameState(prev => {
+      if (prev.status !== 'playing') return prev;
+
       const availableIndices = prev.buttonColors
         .map((c, i) => (c === null ? i : null))
         .filter(i => i !== null) as number[];
@@ -111,19 +123,33 @@ export default function App() {
       const newButtonColors = [...prev.buttonColors];
       newButtonColors[randomIndex] = randomColor;
 
-      const duration = Math.max(500, 1800 - (prev.difficulty * 130));
-      setTimeout(() => {
-        setGameState(current => {
-          if (current.status !== 'playing') return current;
-          const updated = [...current.buttonColors];
-          updated[randomIndex] = null;
-          return { ...current, buttonColors: updated };
-        });
-      }, duration);
-
+      // Schedule clear outside of this functional update using a separate effect or immediate call
+      // But we need the duration which depends on difficulty.
       return { ...prev, buttonColors: newButtonColors };
     });
-  }, [gameState.status]);
+  }, []);
+
+  // Effect to handle color clearing timeouts when buttonColors change
+  useEffect(() => {
+    if (gameState.status !== 'playing') return;
+
+    gameState.buttonColors.forEach((color, index) => {
+      if (color !== null && !buttonTimeoutsRef.current[index]) {
+        const duration = Math.max(500, 1800 - (gameState.difficulty * 130));
+        buttonTimeoutsRef.current[index] = setTimeout(() => {
+          setGameState(prev => {
+            if (prev.status !== 'playing') return prev;
+            const updated = [...prev.buttonColors];
+            updated[index] = null;
+            return { ...prev, buttonColors: updated };
+          });
+          buttonTimeoutsRef.current[index] = null;
+        }, duration);
+      } else if (color === null && buttonTimeoutsRef.current[index]) {
+        clearButtonTimeout(index);
+      }
+    });
+  }, [gameState.buttonColors, gameState.status, gameState.difficulty]);
 
   useEffect(() => {
     if (gameState.status === 'playing') {
@@ -151,6 +177,9 @@ export default function App() {
       soundManager.current.play('tap');
       return;
     }
+
+    // Clear timeout immediately on press
+    clearButtonTimeout(index);
 
     if (pressedColor === gameState.dangerColor) {
       triggerHaptic('heavy');

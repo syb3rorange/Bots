@@ -17,7 +17,7 @@ export const BoppoButton: React.FC<BoppoButtonProps> = ({
       onClick={() => onPress(index)}
       className={`
         relative w-full aspect-square rounded-2xl flex items-center justify-center
-        transition-all duration-300 overflow-hidden
+        transition-all duration-150 overflow-hidden
         ${isColored ? 'brightness-110' : 'brightness-90 opacity-80'}
       `}
       style={{ 
