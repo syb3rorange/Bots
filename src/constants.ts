@@ -27,11 +27,6 @@ export const INITIAL_GAME_STATE: GameState = {
   highScore: 0,
   buttonColors: Array(10).fill(null),
   dangerColor: null,
-  status: 'calibrating',
-  difficulty: 1,
-  calibration: {
-    width: 320,
-    height: 480,
-    padding: 16
-  }
+  status: 'idle',
+  difficulty: 1
 };
