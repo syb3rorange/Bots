@@ -8,8 +8,7 @@ export const BOPPO_CONFIG = {
     '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#6A4C93',
     '#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#6A4C93'
   ],
-  icons: [Circle, Square, Triangle, Hexagon, Pentagon, Circle, Square, Triangle, Hexagon, Pentagon],
-  bgClass: 'bg-zinc-900',
+  bgClass: 'bg-[#0F1115]',
 };
 
 export const GAME_COLORS = [
@@ -27,11 +26,6 @@ export const INITIAL_GAME_STATE: GameState = {
   highScore: 0,
   buttonColors: Array(10).fill(null),
   dangerColor: null,
-  status: 'calibrating',
-  difficulty: 1,
-  calibration: {
-    width: 320,
-    height: 480,
-    padding: 16
-  }
+  status: 'idle',
+  difficulty: 1
 };
