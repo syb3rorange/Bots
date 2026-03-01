@@ -27,7 +27,7 @@ const playSound = (type: 'tap' | 'success' | 'fail' | 'start' | 'warn') => {
   try {
     const audioCtx = getAudioCtx();
     
-    // Resume context if suspended (browser requirement for user interaction)
+    // Force resume on every play to handle mobile aggressive suspension
     if (audioCtx.state === 'suspended') {
       audioCtx.resume();
     }
@@ -35,17 +35,29 @@ const playSound = (type: 'tap' | 'success' | 'fail' | 'start' | 'warn') => {
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
-    oscillator.type = type === 'fail' ? 'sawtooth' : type === 'warn' ? 'triangle' : 'sine';
-    oscillator.frequency.setValueAtTime(frequencies[type], audioCtx.currentTime);
+    // Use more audible waveforms for success/tap
+    if (type === 'success') {
+      oscillator.type = 'triangle';
+    } else if (type === 'fail') {
+      oscillator.type = 'sawtooth';
+    } else if (type === 'warn') {
+      oscillator.type = 'triangle';
+    } else {
+      oscillator.type = 'sine';
+    }
+
+    const now = audioCtx.currentTime;
+    oscillator.frequency.setValueAtTime(frequencies[type], now);
     
-    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+    // Snappier envelope
+    gainNode.gain.setValueAtTime(0.15, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
 
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
 
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.15);
+    oscillator.start(now);
+    oscillator.stop(now + 0.2);
   } catch (e) {
     console.warn("Audio context error", e);
   }
@@ -133,6 +145,10 @@ export default function App() {
   }, [gameState.status, gameState.difficulty, spawnColor]);
 
   const handleButtonPress = (index: number) => {
+    // Ensure audio context is active on every interaction
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+
     if (gameState.status !== 'playing') {
       triggerHaptic('light');
       playSound('tap');
