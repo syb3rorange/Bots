@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Trophy, Zap, RefreshCw, Music, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence, useDragControls } from 'motion/react';
+import { Trophy, Zap, RefreshCw, Music, AlertTriangle, ShieldCheck, Maximize2, CheckCircle2, Move } from 'lucide-react';
 import { BOPPO_CONFIG, GAME_COLORS } from './constants';
-import { GameState } from './types';
+import { GameState, CalibrationData } from './types';
 import { BoppoButton } from './components/BoppoButton';
 
 // Sound Manager (Singleton AudioContext to prevent "too many contexts" error)
@@ -76,8 +76,13 @@ export default function App() {
     highScore: 0,
     buttonColors: Array(10).fill(null),
     dangerColor: null,
-    status: 'idle',
-    difficulty: 1
+    status: 'calibrating',
+    difficulty: 1,
+    calibration: {
+      width: Math.min(window.innerWidth - 40, 400),
+      height: Math.min(window.innerHeight - 150, 600),
+      padding: 16
+    }
   });
 
   const spawnTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -89,15 +94,15 @@ export default function App() {
 
     playSound('start');
     const randomDanger = GAME_COLORS[Math.floor(Math.random() * GAME_COLORS.length)];
-    setGameState({
+    setGameState(prev => ({
+      ...prev,
       score: 0,
       streak: 0,
-      highScore: gameState.highScore,
       buttonColors: Array(10).fill(null),
       dangerColor: randomDanger,
       status: 'playing',
       difficulty: 1
-    });
+    }));
   };
 
   const spawnColor = useCallback(() => {
@@ -192,11 +197,133 @@ export default function App() {
     }
   };
 
+  const finishCalibration = () => {
+    triggerHaptic('light');
+    playSound('tap');
+    setGameState(prev => ({ ...prev, status: 'idle' }));
+  };
+
+  const updateCalibration = (updates: Partial<CalibrationData>) => {
+    setGameState(prev => ({
+      ...prev,
+      calibration: { ...prev.calibration, ...updates }
+    }));
+  };
+
+  if (gameState.status === 'calibrating') {
+    return (
+      <div className={`min-h-screen ${BOPPO_CONFIG.bgClass} text-white font-sans flex flex-col items-center justify-center p-4 safe-area-inset`}>
+        <div className="text-center mb-8">
+          <Maximize2 size={48} className="mx-auto mb-4 text-emerald-400" />
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-2">Calibrate Boppo</h1>
+          <p className="text-sm opacity-60 max-w-xs mx-auto">Drag the handles to fit the device to your screen. Make it comfortable for your thumbs!</p>
+        </div>
+
+        <div className="relative flex items-center justify-center">
+          {/* Resizable Frame Preview */}
+          <div 
+            className="bg-zinc-800/90 rounded-[2.5rem] border-4 border-zinc-700/50 shadow-2xl relative flex flex-col p-4"
+            style={{ 
+              width: gameState.calibration.width, 
+              height: gameState.calibration.height 
+            }}
+          >
+            <div className="flex-1 border-2 border-dashed border-white/10 rounded-[1.5rem] flex items-center justify-center">
+              <Move className="opacity-20" size={48} />
+            </div>
+
+            {/* Resize Handles */}
+            {/* Top Handle */}
+            <motion.div 
+              drag="y"
+              dragMomentum={false}
+              onDrag={(_, info) => updateCalibration({ height: Math.max(300, gameState.calibration.height - info.delta.y * 2) })}
+              className="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-emerald-500/20 hover:bg-emerald-500/40 rounded-full cursor-ns-resize flex items-center justify-center border border-emerald-500/30 z-20"
+            >
+              <div className="w-8 h-1 bg-emerald-500 rounded-full" />
+            </motion.div>
+
+            {/* Left Handle */}
+            <motion.div 
+              drag="x"
+              dragMomentum={false}
+              onDrag={(_, info) => updateCalibration({ width: Math.max(200, gameState.calibration.width - info.delta.x * 2) })}
+              className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-16 bg-emerald-500/20 hover:bg-emerald-500/40 rounded-full cursor-ew-resize flex items-center justify-center border border-emerald-500/30 z-20"
+            >
+              <div className="w-1 h-8 bg-emerald-500 rounded-full" />
+            </motion.div>
+
+            {/* Right Handle */}
+            <motion.div 
+              drag="x"
+              dragMomentum={false}
+              onDrag={(_, info) => updateCalibration({ width: Math.max(200, gameState.calibration.width + info.delta.x * 2) })}
+              className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-16 bg-emerald-500/20 hover:bg-emerald-500/40 rounded-full cursor-ew-resize flex items-center justify-center border border-emerald-500/30 z-20"
+            >
+              <div className="w-1 h-8 bg-emerald-500 rounded-full" />
+            </motion.div>
+
+            {/* Bottom Handle */}
+            <motion.div 
+              drag="y"
+              dragMomentum={false}
+              onDrag={(_, info) => updateCalibration({ height: Math.max(300, gameState.calibration.height + info.delta.y * 2) })}
+              className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-emerald-500/20 hover:bg-emerald-500/40 rounded-full cursor-ns-resize flex items-center justify-center border border-emerald-500/30 z-20"
+            >
+              <div className="w-8 h-1 bg-emerald-500 rounded-full" />
+            </motion.div>
+
+            {/* Corner Handle (Bottom Right) */}
+            <motion.div 
+              drag
+              dragMomentum={false}
+              onDrag={(_, info) => updateCalibration({ 
+                width: Math.max(200, gameState.calibration.width + info.delta.x * 2),
+                height: Math.max(300, gameState.calibration.height + info.delta.y * 2)
+              })}
+              className="absolute -right-4 -bottom-4 w-10 h-10 bg-emerald-500/30 hover:bg-emerald-500/50 rounded-xl cursor-nwse-resize flex items-center justify-center border-2 border-emerald-500/50 z-30 shadow-lg"
+            >
+              <Maximize2 size={16} className="text-emerald-400 rotate-90" />
+            </motion.div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 mt-12">
+          <button
+            onClick={() => updateCalibration({ 
+              width: Math.min(window.innerWidth - 40, 400), 
+              height: Math.min(window.innerHeight - 200, 600) 
+            })}
+            className="bg-white/5 hover:bg-white/10 text-white/60 px-6 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs border border-white/10"
+          >
+            Reset
+          </button>
+          
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={finishCalibration}
+            className="bg-emerald-500 text-black px-12 py-4 rounded-2xl font-black uppercase tracking-tighter text-lg shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center gap-3"
+          >
+            <CheckCircle2 size={24} />
+            Proceed
+          </motion.button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen ${BOPPO_CONFIG.bgClass} text-white font-sans selection:bg-white/20 flex flex-col items-center justify-center p-2 transition-colors duration-700 safe-area-inset`}>
       
-      {/* Device Frame */}
-      <div className="w-full max-w-lg bg-zinc-800/90 p-4 sm:p-6 rounded-[2rem] border-4 border-zinc-700/50 shadow-2xl relative overflow-hidden">
+      {/* Device Frame - Uses Calibrated Dimensions */}
+      <div 
+        className="bg-zinc-800/90 rounded-[2.5rem] border-4 border-zinc-700/50 shadow-2xl relative overflow-hidden flex flex-col"
+        style={{ 
+          width: gameState.calibration.width, 
+          height: gameState.calibration.height,
+          padding: gameState.calibration.padding
+        }}
+      >
         
         {/* Hardware Details */}
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-zinc-900 rounded-full opacity-30" />
@@ -240,8 +367,8 @@ export default function App() {
           </AnimatePresence>
         </div>
 
-        {/* The Grid - Optimized for Mobile (5x2 as requested) */}
-        <div className="grid grid-cols-5 gap-2 mb-4">
+        {/* The Grid - Fills the available space */}
+        <div className="grid grid-cols-5 gap-2 mb-4 flex-1 items-center">
           {Array.from({ length: 10 }).map((_, i) => (
             <BoppoButton
               key={i}
@@ -285,20 +412,20 @@ export default function App() {
               className="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6 text-center"
             >
               <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}>
-                <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/50">
-                  <AlertTriangle size={40} className="text-red-500" />
+                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/50">
+                  <AlertTriangle size={32} className="text-red-500" />
                 </div>
-                <h2 className="text-4xl font-black italic uppercase tracking-tighter mb-1">Danger Hit!</h2>
-                <p className="text-sm font-mono opacity-50 mb-8 uppercase tracking-widest">You touched the forbidden color</p>
+                <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-1">Danger Hit!</h2>
+                <p className="text-[10px] font-mono opacity-50 mb-6 uppercase tracking-widest">You touched the forbidden color</p>
                 
-                <div className="bg-white/5 rounded-3xl p-6 mb-8 border border-white/10">
-                  <div className="text-[10px] uppercase font-bold opacity-40 mb-1">Final Score</div>
-                  <div className="text-5xl font-mono text-emerald-400">{gameState.score}</div>
+                <div className="bg-white/5 rounded-2xl p-4 mb-6 border border-white/10">
+                  <div className="text-[8px] uppercase font-bold opacity-40 mb-1">Final Score</div>
+                  <div className="text-4xl font-mono text-emerald-400">{gameState.score}</div>
                 </div>
 
                 <button
                   onClick={startGame}
-                  className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase tracking-tighter text-lg"
+                  className="w-full bg-white text-black py-3 rounded-xl font-black uppercase tracking-tighter text-sm"
                 >
                   Try Again
                 </button>
