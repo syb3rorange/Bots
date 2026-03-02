@@ -6,8 +6,10 @@ export interface GameState {
   highScore: number;
   buttonColors: (string | null)[];
   dangerColor: string | null;
-  status: 'idle' | 'playing' | 'gameOver';
+  status: 'idle' | 'playing' | 'gameOver' | 'loading';
   difficulty: number; // 1 to 10
+  mode: 'avoid' | 'target';
+  isPaused: boolean;
 }
 
 export interface BoppoButtonProps {
