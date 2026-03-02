@@ -27,5 +27,7 @@ export const INITIAL_GAME_STATE: GameState = {
   buttonColors: Array(10).fill(null),
   dangerColor: null,
   status: 'idle',
-  difficulty: 1
+  difficulty: 1,
+  mode: 'avoid',
+  isPaused: false
 };
